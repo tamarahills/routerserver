@@ -56,6 +56,17 @@ app.post('/devices', function(req, res) {
   res.status(200).send(devices);
 });
 
+app.post('/vpnStatus', function(req, res) {
+  logger.info('vpn post');
+  var vpn = '{"vpnStatus" : "enabled"}';
+  res.status(200).send(vpn);
+});
+
+app.post('/vpnSwitch', function(req, res) {
+  logger.info('vpnSwitch post');
+  res.status(200);
+});
+
 // Start the server listening.
 app.listen(process.env.PORT || 8080, function() {
 	logger.info('Server started on port ' + (process.env.PORT || 8080));
