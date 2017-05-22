@@ -1,0 +1,12 @@
+{
+  "name": "router",
+  "main": "server.js",
+  "author": "Tamara Hills<thills@mozilla.com>",
+  "description": "Server to communicate with router mobile app",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "~4.0.0",
+    "nconf": "0.8.4",
+    "simple-node-logger": "^0.93.12"
+  }
+}
