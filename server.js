@@ -4,13 +4,16 @@
 'use strict';
 var express = require('express');
 var port    =   process.env.PORT || 8080;
+const execFile = require('child_process').execFile;
 var Logger = require('./logger');
+var firewall = require('./firewall');
 var bodyParser = require('body-parser');
 let util = require('util');
 let http = require('http');
 var nconf = require('nconf');
 var app = express();
 var logger = new Logger().getLogger();
+var fw = new firewall();
 // Use nconf to get the configuration for different APIs we are using.
 nconf.argv()
    .env()
@@ -44,16 +47,10 @@ app.get('/', function(req, res) {
 });
 
 app.get('/about', function(req, res) {
+  //Firewall.enableRule('4C:32:75:81:C7:12');
+  //fw.createRule('xxblockipad');
+  fw.isRuleEnabled('xxblockipad');
   res.send('This is a Router Server.');
-});
-
-app.post('/devices', function(req, res) {
-  logger.info('devices post');
-  var devices = '{ "deviceList" : [' +
-      '{ "host":"Tamaras Macbook" , "IP":"10.19.2.160" },' +
-      '{ "host":"iPad Mini" , "IP":"192.168.1.3" },' +
-      '{ "host":"Lenovo2006" , "IP":"192.168.1.4" } ]}';
-  res.status(200).send(devices);
 });
 
 app.post('/vpnStatus', function(req, res) {
@@ -62,9 +59,26 @@ app.post('/vpnStatus', function(req, res) {
   res.status(200).send(vpn);
 });
 
-app.post('/vpnSwitch', function(req, res) {
-  logger.info('vpnSwitch post');
-  res.status(200);
+app.post('/devices', function(req, res) {
+  logger.info('devices post');
+  execFile('/root/tamara/routerserver/wifi.sh', (error, stdout, stderr) => {
+    if(error) {
+      logger.log('exec error');
+      console.log(stderr);
+      res.status(500).send('error');
+    }
+    var devices = { deviceList: [] };
+    var data = stdout.split(/(?:\r\n|\r|\n)/g);
+    for(var i = 0; i < data.length -1; i++) {
+      var addrs = data[i].split('\t');
+      fw.isRuleEnabled(addrs[2], function(enabled) {
+        console.log('Got Callback:  enabled is: ' + enabled);
+        devices.deviceList.push({"host": addrs[1], "IP": addrs[0], 
+          "enabled": false});
+      });
+    }
+    res.status(200).send(devices);
+  });
 });
 
 // Start the server listening.
