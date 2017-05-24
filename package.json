@@ -4,6 +4,7 @@
   "author": "Tamara Hills<thills@mozilla.com>",
   "description": "Server to communicate with router mobile app",
   "dependencies": {
+    "async": "^2.4.1",
     "body-parser": "^1.15.2",
     "express": "~4.0.0",
     "nconf": "0.8.4",

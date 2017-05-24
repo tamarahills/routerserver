@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 'use strict';
+var async = require('async');
 var express = require('express');
 var port    =   process.env.PORT || 8080;
 const execFile = require('child_process').execFile;
@@ -59,6 +60,12 @@ app.post('/vpnStatus', function(req, res) {
   res.status(200).send(vpn);
 });
 
+app.post('/pause', function(req, res) {
+  logger.info('pause post');
+  console.log(req.body);
+  res.status(200).send('OK');
+});
+
 app.post('/devices', function(req, res) {
   logger.info('devices post');
   execFile('/root/tamara/routerserver/wifi.sh', (error, stdout, stderr) => {
@@ -69,15 +76,18 @@ app.post('/devices', function(req, res) {
     }
     var devices = { deviceList: [] };
     var data = stdout.split(/(?:\r\n|\r|\n)/g);
-    for(var i = 0; i < data.length -1; i++) {
-      var addrs = data[i].split('\t');
+    async.each(data, function(strEntry, callback) {
+      var addrs = strEntry.split('\t');
       fw.isRuleEnabled(addrs[2], function(enabled) {
-        console.log('Got Callback:  enabled is: ' + enabled);
+        console.log('Got callback: enabled is: ' + enabled);
         devices.deviceList.push({"host": addrs[1], "IP": addrs[0], 
-          "enabled": false});
+          "mac": addrs[2], "enabled": enabled});
+	callback();
       });
-    }
-    res.status(200).send(devices);
+    }, function(err) {
+      console.log('All processed');
+      res.status(200).send(devices);
+    });
   });
 });
 
