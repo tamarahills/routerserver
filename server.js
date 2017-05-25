@@ -40,7 +40,7 @@ app.post('/item',  function(req, res) {
   var item = req.body.item;
   var type = req.body.rec_type || 'visual';
   logger.info('deviceid: ' + deviceid + '. item: ' + item);
-    res.status(200).send('OK');
+  res.status(200).send('OK');
 });
 
 app.get('/', function(req, res) {
@@ -63,6 +63,17 @@ app.post('/vpnStatus', function(req, res) {
 app.post('/pause', function(req, res) {
   logger.info('pause post');
   console.log(req.body);
+  fw.checkIfRuleExists(req.body.mac, function(exists) {
+    if(exists) {
+      console.log('rule exists');
+      fw.enableRule(req.body.mac, req.body.value);
+    } else {
+      console.log('rule does not exist.');
+      if (req.body.value) {
+        fw.createRule(req.body.mac);
+      }
+    }
+  });
   res.status(200).send('OK');
 });
 
@@ -80,8 +91,11 @@ app.post('/devices', function(req, res) {
       var addrs = strEntry.split('\t');
       fw.isRuleEnabled(addrs[2], function(enabled) {
         console.log('Got callback: enabled is: ' + enabled);
-        devices.deviceList.push({"host": addrs[1], "IP": addrs[0], 
-          "mac": addrs[2], "enabled": enabled});
+
+	if(addrs[0]) {
+          devices.deviceList.push({"host": addrs[1], "IP": addrs[0], 
+            "mac": addrs[2], "enabled": enabled});
+	}
 	callback();
       });
     }, function(err) {
