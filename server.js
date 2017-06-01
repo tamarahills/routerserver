@@ -8,6 +8,8 @@ var port    =   process.env.PORT || 8080;
 const execFile = require('child_process').execFile;
 var Logger = require('./logger');
 var firewall = require('./firewall');
+var network= require('./network');
+var vpn = require('./vpn');
 var bodyParser = require('body-parser');
 let util = require('util');
 let http = require('http');
@@ -15,6 +17,8 @@ var nconf = require('nconf');
 var app = express();
 var logger = new Logger().getLogger();
 var fw = new firewall();
+var vp = new vpn();
+var network = new network();
 // Use nconf to get the configuration for different APIs we are using.
 nconf.argv()
    .env()
@@ -47,17 +51,11 @@ app.get('/', function(req, res) {
   res.send('This is a Router Server.');
 });
 
-app.get('/about', function(req, res) {
-  //Firewall.enableRule('4C:32:75:81:C7:12');
-  //fw.createRule('xxblockipad');
-  fw.isRuleEnabled('xxblockipad');
-  res.send('This is a Router Server.');
-});
-
-app.post('/vpnStatus', function(req, res) {
-  logger.info('vpn post');
-  var vpn = '{"vpnStatus" : "enabled"}';
-  res.status(200).send(vpn);
+app.post('/toggleVpn', function(req,res) {
+  logger.info('toggleVpn post');
+  console.log('value is: ' + req.body.enabled);
+  vp.toggle(req.body.value);
+  res.status(200).send('OK');;
 });
 
 app.post('/pause', function(req, res) {
@@ -103,6 +101,13 @@ app.post('/devices', function(req, res) {
       res.status(200).send(devices);
     });
   });
+});
+
+app.get('/connections', function(req, res) {
+  network.getConnList(function(payload) {
+    console.log('Payload received');
+    res.status(200).send(payload);
+  });;
 });
 
 // Start the server listening.
