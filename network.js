@@ -12,6 +12,16 @@ function network() {
   var self = this;
 }
 
+function getReadableBytes(fileSizeInBytes) {
+  var i = -1;
+  var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+  do {
+    fileSizeInBytes = fileSizeInBytes / 1024;
+    i++;
+   } while (fileSizeInBytes > 1024);
+  return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+}
+
 network.prototype.getConnList = function(callback) {
   var data = {};
   data.connections = [];
@@ -56,6 +66,10 @@ network.prototype.getConnList = function(callback) {
       return parseFloat(b.bytes) - parseFloat(a.bytes);
     });
 
+    for(var key in data.connections) {
+      var pr = getReadableBytes(data.connections[key].bytes);
+      data.connections[key].bytes = pr;
+    }
     callback(data);
   });
 }
