@@ -7,9 +7,10 @@ const exec = require('child_process').exec;
 const fs = require('fs');
 const readline = require('readline');
 var ps = require('ps-node');
+var childProcess = require('child_process');
+const dns = require('dns');
 
-function network() {
-  var self = this;
+function NetworkConn() {
 }
 
 function getReadableBytes(fileSizeInBytes) {
@@ -22,7 +23,19 @@ function getReadableBytes(fileSizeInBytes) {
   return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
 }
 
-network.prototype.getConnList = function(callback) {
+NetworkConn.prototype.createProcess = function() {
+  NetworkConn._retrieveChild = childProcess.fork('./reverse.js');
+  NetworkConn._retrieveChild.on('message', function(msg) {
+    console.log('Inserting:'+ msg.dst + ':'+msg.host);
+    NetworkConn.dnsCache.set(msg.dst, msg.host);
+  }.bind(this));
+}
+
+NetworkConn.prototype.addLanHost = function(ip, host) {
+  NetworkConn.dnsCache.set(ip, host);
+}
+
+NetworkConn.prototype.getConnList = function(callback) {
   var data = {};
   data.connections = [];
 
@@ -31,23 +44,29 @@ network.prototype.getConnList = function(callback) {
   });
 
   rl.on('line', function(line) {
-    console.log('Line from file:' + line);
     var conn = {};
     
     var arr = line.split(/\s+/);
-    console.log('length:' + arr.length);
     for(var key in arr) {
-      console.log(arr[key]);
       var i = arr[key].indexOf('src=');
       if(-1 != i) {
         conn.src = arr[key].slice(i + 4);
-	console.log(conn.src);
 	continue;
       }
 
       i = arr[key].indexOf('dst=');
       if(-1 != i) {
-        conn.dst = arr[key].slice(i + 4);
+        var dest = arr[key].slice(i + 4);
+	if (NetworkConn.dnsCache.has(conn.dst)) {
+	  var host = NetworkConn.dnsCache.get(conn.dst);
+	  console.log('VALUE CACHED:'+conn.dst + ':' + host);
+	  conn.dst = host;
+	} else {
+	  var msgData = { "dst": dest };
+	  console.log('SENDING DATA');
+	  NetworkConn._retrieveChild.send(msgData);
+          conn.dst = dest;
+	}
         continue;
       }
 
@@ -74,6 +93,9 @@ network.prototype.getConnList = function(callback) {
   });
 }
 
-module.exports = network;
+NetworkConn.dnsCache = new Map();
+NetworkConn.lanHostnames = new Map();
+
+module.exports = NetworkConn;
 
 

@@ -8,7 +8,7 @@ var port    =   process.env.PORT || 8080;
 const execFile = require('child_process').execFile;
 var Logger = require('./logger');
 var firewall = require('./firewall');
-var network= require('./network');
+var NetworkConn= require('./network');
 var vpn = require('./vpn');
 var bodyParser = require('body-parser');
 let util = require('util');
@@ -18,7 +18,8 @@ var app = express();
 var logger = new Logger().getLogger();
 var fw = new firewall();
 var vp = new vpn();
-var network = new network();
+var network = new NetworkConn();
+console.log('Created new NETWORKCONN');
 // Use nconf to get the configuration for different APIs we are using.
 nconf.argv()
    .env()
@@ -93,6 +94,7 @@ app.post('/devices', function(req, res) {
 	if(addrs[0]) {
           devices.deviceList.push({"host": addrs[1], "IP": addrs[0], 
             "mac": addrs[2], "enabled": enabled});
+	  network.addLanHost(addrs[0], addrs[1]);
 	}
 	callback();
       });
@@ -113,4 +115,5 @@ app.get('/connections', function(req, res) {
 // Start the server listening.
 app.listen(process.env.PORT || 8080, function() {
 	logger.info('Server started on port ' + (process.env.PORT || 8080));
+	network.createProcess();
 });
