@@ -1,0 +1,8 @@
+{
+  "name": "RouterApp",
+  "short_name": "RouterWeb",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "Router app.",
+}

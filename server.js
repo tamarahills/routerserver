@@ -37,6 +37,8 @@ app.use('/item', function(req, res, next) {
 // These need to be declared ahead of any of the post or get handlers.
 app.use(bodyParser.json());
 
+app.use(express.static('pwa'));
+
 /*
  */
 app.post('/item',  function(req, res) {

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Router WebApp</title>
+    <link rel="manifest" href="app.webmanifest">
+    <!-- App -->
+    <script type="text/javascript" src="js/app.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/app.css" />
+    <!-- Connections Screen -->
+    <script type="text/javascript" src="js/connections.js"></script>
+    <!-- Connection Screen -->
+    <script type="text/javascript" src="js/connection.js"></script>
+    <!-- Block Screen -->
+    <script type="text/javascript" src="js/block.js"></script>
+    <!-- Block Item -->
+    <script type="text/javascript" src="js/block_item.js"></script>
+  </head>
+  <body>
+  <!-- Connections List -->
+  <section data-view="connections" id="conn-view" class="selected">
+    <div id="connections">No connections found.</div>
+  </section>
+  <section data-view="block" id="block-view" class="hidden">
+    <div id="block"></div>
+  </section>
+  </body>
+</html>
